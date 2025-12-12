@@ -1,5 +1,4 @@
 import { Buffer } from "node:buffer";
-import { exec } from "child_process";
 
 export default {
   async fetch(request, env) {
@@ -13,7 +12,6 @@ export default {
     try {
       const auth = request.headers.get("Authorization");
       const apiKey = handleAPIKey(env) || auth?.split(" ")[1];
-      console.log("DEBUG: Using API Key:", apiKey);
       const assert = (success) => {
         if (!success) {
           throw new HttpError("The specified HTTP method is not allowed for the requested resource", 400);
@@ -685,12 +683,6 @@ function toOpenAiStreamFlush(controller) {
     }
     controller.enqueue("data: [DONE]" + delimiter);
   }
-
-  // call BetterTouchTool trigger to implement the "Auto Read AI Responses" feature
-  setTimeout(() =>
-    exec('open -g "btt://trigger_named/?trigger_name=Read AI Responses"',
-      (err) => err && console.error("Failed to open link:", err)
-    ), 300);
 }
 
 const handleAPIKey = (env) => {
