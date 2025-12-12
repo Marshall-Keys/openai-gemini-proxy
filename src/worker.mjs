@@ -2,7 +2,7 @@ import { Buffer } from "node:buffer";
 import { exec } from "child_process";
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     if (request.method === "OPTIONS") {
       return handleOPTIONS();
     }
@@ -12,7 +12,8 @@ export default {
     };
     try {
       const auth = request.headers.get("Authorization");
-      const apiKey = auth?.split(" ")[1];
+      const apiKey = handleAPIKey(env) || auth?.split(" ")[1];
+      console.log("DEBUG: Using API Key:", apiKey);
       const assert = (success) => {
         if (!success) {
           throw new HttpError("The specified HTTP method is not allowed for the requested resource", 400);
@@ -691,3 +692,17 @@ function toOpenAiStreamFlush(controller) {
       (err) => err && console.error("Failed to open link:", err)
     ), 300);
 }
+
+const handleAPIKey = (env) => {
+  const keys = [];
+  for (let i = 1; i <= 5; i++) {
+    const key = env?.[`GEMINI_API_KEY_FREE_${i}`] || process.env[`GEMINI_API_KEY_FREE_${i}`];
+    if (key) {
+      keys.push(key);
+    }
+  }
+  if (keys.length === 0) {
+    return null;
+  }
+  return keys[Math.floor(Math.random() * keys.length)];
+};
